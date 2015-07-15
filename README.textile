@@ -1,19 +1,20 @@
 h1. ØMQ transport layer plugin for Elasticsearch
 
-This plugin exposes the REST interfaces of "Elasticsearch":http://www.elasticsearch.org over "ZeroMQ":http://www.zeromq.org/ messaging library.
+This plugin exposes the REST interfaces of "Elasticsearch":http://www.elasticsearch.org over "ZeroMQ":http://www.zeromq.org/ messaging library.  This version is a fork of the original "transport-zeromq":https://github.com/tlrx/transport-zeromq created by Tanguy Leroux.
 
 h2. Versions
 
-|_. ØMQ Transport Plugin|_. ElasticSearch	|_. ØMQ	|
-|  master (0.0.3)   	|  master (0.19.2)	| 2.2	|
-|     0.0.2         	|     0.18.2		| 2.1	|
+|_. ØMQ Transport Plugin|_. ElasticSearch	|_. ØMQ		            	|
+|     1.0.0	        	|  	1.6.0		    | jeromq 0.3.4 / jzmq 3.1 	|
+|     0.0.3   	    	| 	0.19.2	    	| 2.2			    	    |
+|     0.0.2          	| 	0.18.2	    	| 2.1				        |
 
 
 h2. Installation
 
 h3. Requirements
 
-Before installing and using this plugin with Elasticsearch (0.19.2), you need to install ZeroMQ Java Binding library (2.2) on your system. This binding uses native library to work. 
+*See README in tags for older releases.  As of version 1.0.0 of this fork, this plugin uses jeromq.  Previous versions used the native jzmq.  This should still work with versions of jzmq starting with 3.1.0 due to their API convergence, but this has not been tested.*
 
 The "ZeroMQ":http://www.zeromq.org/ website is a great place to start installing the libraries, specially the "Java binding page":http://www.zeromq.org/bindings:java
 
