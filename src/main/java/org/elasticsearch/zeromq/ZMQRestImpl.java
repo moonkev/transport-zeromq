@@ -30,7 +30,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestResponse;
-import org.zeromq.ZMQException;
+import org.elasticsearch.zeromq.exception.ZMQTransportException;
 
 /**
  * @author tlrx
@@ -50,13 +50,13 @@ public class ZMQRestImpl extends AbstractComponent {
 		final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<ZMQRestResponse> ref = new AtomicReference<ZMQRestResponse>();
         
-		this.restController.dispatchRequest(request, new RestChannel() {
+		this.restController.dispatchRequest(request, new RestChannel(request, true) {
 			
 			@Override
 			public void sendResponse(RestResponse response) {
 				try {
 					if(logger.isTraceEnabled()){
-						logger.info("Response to ØMQ client: {}", new String(response.content()));	
+						logger.info("Response to ØMQ client: {}", new String(response.content().toBytes()));
 					}
 					ref.set(convert(response));
 				} catch (IOException e) {
@@ -70,7 +70,7 @@ public class ZMQRestImpl extends AbstractComponent {
             latch.await();
             return ref.get();
         } catch (Exception e) {
-            throw new ZMQException("failed to generate response", 0);
+            throw new ZMQTransportException("failed to generate response");
         }
 	}
 	
@@ -80,15 +80,8 @@ public class ZMQRestImpl extends AbstractComponent {
 		if(response.contentType() != null){
 			zmqResponse.setContentType(response.contentType());
 		}
-        if (response.contentLength() > 0) {
-            if (response.contentThreadSafe()) {
-            	zmqResponse.setBody(ByteBuffer.wrap(response.content(), 0, response.contentLength()));
-            } else {
-                // argh!, we need to copy it over since we are not on the same thread...
-                byte[] body = new byte[response.contentLength()];
-                System.arraycopy(response.content(), 0, body, 0, response.contentLength());
-                zmqResponse.setBody(ByteBuffer.wrap(body));
-            }
+        if (response.content().length() > 0) {
+			zmqResponse.setBody(ByteBuffer.wrap(response.content().toBytes(), 0, response.content().length()));
         }
         return zmqResponse;
     }

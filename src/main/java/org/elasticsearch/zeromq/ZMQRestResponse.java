@@ -3,15 +3,17 @@ package org.elasticsearch.zeromq;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.elasticsearch.common.Bytes;
-import org.elasticsearch.rest.AbstractRestResponse;
+import org.apache.lucene.util.BytesRef;
+import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.bytes.HashedBytesArray;
+import org.elasticsearch.rest.RestResponse;
 import org.elasticsearch.rest.RestStatus;
 
 /**
  * @author tlrx
  * 
  */
-public class ZMQRestResponse extends AbstractRestResponse {
+public class ZMQRestResponse extends RestResponse {
 
 	private final RestStatus status;
 
@@ -35,29 +37,16 @@ public class ZMQRestResponse extends AbstractRestResponse {
 	}
 
 	@Override
-	public byte[] content() throws IOException {
+	public BytesReference content() {
 		if (body == null) {
-			return Bytes.EMPTY_ARRAY;
+			return new HashedBytesArray(BytesRef.EMPTY_BYTES);
 		}
-		return body.array();
-	}
-
-	@Override
-	public int contentLength() throws IOException {
-		if (body == null) {
-			return 0;
-		}
-		return body.remaining();
+		return new HashedBytesArray(body.array());
 	}
 
 	@Override
 	public RestStatus status() {
 		return status;
-	}
-
-	@Override
-	public boolean contentThreadSafe() {
-		return false;
 	}
 
 	public void setContentType(String contentType) {
@@ -78,7 +67,7 @@ public class ZMQRestResponse extends AbstractRestResponse {
 		ByteBuffer bContent = null;
 		
 		try {
-			bContent = ByteBuffer.wrap(content());
+			bContent = ByteBuffer.wrap(content().toBytes());
 		} catch (Exception e) {
 			bContent = ByteBuffer.wrap(e.getMessage().getBytes());
 		}

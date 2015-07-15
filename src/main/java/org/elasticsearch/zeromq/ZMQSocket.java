@@ -57,32 +57,34 @@ public class ZMQSocket implements Runnable {
         }
 
         while (isRunning.get()) {
+            // Reads all parts of the message
+            List<byte[]> parts = new ArrayList<byte[]>();
 
-			// Reads all parts of the message
-			List<byte[]> parts = new ArrayList<byte[]>();
+            try {
 
-			try {
-				
-				do {
-					byte[] request = socket.recv(0);
-					parts.add(request);
-				}while (socket.hasReceiveMore());	
-				
-			} catch (ZMQException zmqe) {
-				// Close the socket
-				if(logger.isWarnEnabled()){
+                do {
+                    byte[] request = socket.recv(0);
+                    parts.add(request);
+                } while (socket.hasReceiveMore());
+
+            } catch (ZMQException zmqe) {
+                if (!isRunning.get()) {
+                    break;
+                }
+                // Close the socket
+                if (logger.isWarnEnabled()) {
                     logger.warn("Exception when receiving message", zmqe);
                 }
-			}
+            }
 
-            if(parts.isEmpty()){
+            if (parts.isEmpty()) {
                 continue;
             }
 
-			// Payload
-			String payload = new String(parts.get(parts.size() - 1));
+            // Payload
+            String payload = new String(parts.get(parts.size() - 1));
 
-            if(logger.isDebugEnabled()){
+            if (logger.isDebugEnabled()) {
                 logger.debug("ØMQ socket {} receives message: {}", id, payload);
             }
 
@@ -92,21 +94,21 @@ public class ZMQSocket implements Runnable {
             // Stores the latest exception
             Exception lastException = null;
 
-            if(ZMQQueueServerImpl.ZMQ_STOP_SOCKET.equals(payload)){
-                if(logger.isInfoEnabled()){
+            if (ZMQQueueServerImpl.ZMQ_STOP_SOCKET.equals(payload)) {
+                if (logger.isInfoEnabled()) {
                     logger.info("ØMQ socket {} receives stop message", id);
                 }
 
             } else {
-                try{
+                try {
                     // Construct an ES request
                     request = new ZMQRestRequest(payload, parts);
 
                     // Process the request
                     response = client.process(request);
 
-                }catch (Exception e){
-                    if(logger.isErrorEnabled()){
+                } catch (Exception e) {
+                    if (logger.isErrorEnabled()) {
                         logger.error("Exception when processing ØMQ message", e);
                     }
                     response = null;
@@ -114,16 +116,16 @@ public class ZMQSocket implements Runnable {
                 }
             }
 
-			// Sends all the message parts back
-			for(int i=0; i<(parts.size() - 1); i++){
-				socket.send(parts.get(i), ZMQ.SNDMORE);	
-			}
+            // Sends all the message parts back
+            for (int i = 0; i < (parts.size() - 1); i++) {
+                socket.send(parts.get(i), ZMQ.SNDMORE);
+            }
 
             // Sends the reply
             if (response != null) {
                 socket.send(response.payload(), 0);
 
-            } else if(lastException != null) {
+            } else if (lastException != null) {
                 // An error occured
                 socket.send(("Unable to process ØMQ message [" + lastException.getMessage() + "]").getBytes(), 0);
 

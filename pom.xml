@@ -10,7 +10,7 @@
 	<url>https://github.com/tlrx/transport-zeromq</url>
 	
 	<properties>
-		<elasticsearch.version>0.19.2</elasticsearch.version>
+		<elasticsearch.version>1.6.0</elasticsearch.version>
 	</properties>
 
 	<scm>
@@ -41,11 +41,9 @@
 			<version>${elasticsearch.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.elasticsearch.zeromq</groupId>
-			<artifactId>jzmq</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/jzmq-1.0.0.jar</systemPath>
+			<groupId>org.zeromq</groupId>
+			<artifactId>jeromq</artifactId>
+			<version>0.3.4</version>
 		</dependency>
 	</dependencies>	
 
@@ -137,6 +135,14 @@
 					<target>1.6</target>
 		        	</configuration>
    			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkMode>once</forkMode>
+					<argLine>-Djava.library.path=/usr/local/lib</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>

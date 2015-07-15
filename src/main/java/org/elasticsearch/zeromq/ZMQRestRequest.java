@@ -1,8 +1,9 @@
 package org.elasticsearch.zeromq;
 
-import org.elasticsearch.common.Bytes;
-import org.elasticsearch.common.Unicode;
-import org.elasticsearch.rest.support.AbstractRestRequest;
+import org.apache.lucene.util.BytesRef;
+import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.bytes.HashedBytesArray;
+import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.support.RestUtils;
 import org.elasticsearch.zeromq.exception.NoURIFoundZMQException;
 import org.elasticsearch.zeromq.exception.UnsupportedMethodZMQException;
@@ -17,7 +18,7 @@ import java.util.Map;
  * @author tlrx
  * 
  */
-public class ZMQRestRequest extends AbstractRestRequest {
+public class ZMQRestRequest extends RestRequest {
 
 	private final List<byte[]> parts;
 
@@ -110,44 +111,6 @@ public class ZMQRestRequest extends AbstractRestRequest {
 	}
 
 	@Override
-	public boolean contentUnsafe() {
-		return false;
-	}
-
-	@Override
-	public byte[] contentByteArray() {
-		if (body == null) {
-			return Bytes.EMPTY_ARRAY;
-		}
-		return body.array();
-	}
-
-	@Override
-	public int contentByteArrayOffset() {
-		if (body == null) {
-			return 0;
-		}
-		return body.arrayOffset() + body.position();
-	}
-
-	@Override
-	public int contentLength() {
-		if (body == null) {
-			return 0;
-		}
-		return body.remaining();
-	}
-
-	@Override
-	public String contentAsString() {
-		if (body == null) {
-			return "";
-		}
-		return Unicode.fromBytes(contentByteArray(), contentByteArrayOffset(),
-				contentLength());
-	}
-
-	@Override
 	public String header(String name) {
 		return null;
 	}
@@ -163,6 +126,20 @@ public class ZMQRestRequest extends AbstractRestRequest {
 		String p = params.get(key);
 		return p;
 	}
+
+	@Override
+	public BytesReference content() {
+		if (body == null) {
+			return new HashedBytesArray(BytesRef.EMPTY_BYTES);
+		}
+		return new HashedBytesArray(body.array());
+	}
+
+	@Override
+	public Iterable<Map.Entry<String, String>> headers() {
+		return null;
+	}
+
 
 	@Override
 	public Map<String, String> params() {

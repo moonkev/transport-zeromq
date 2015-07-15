@@ -114,7 +114,7 @@ public class ZMQTransportPluginTest {
 		Assert.assertNotNull(response);
 		
 		response = sendAndReceive("PUT", "/books/", null);
-		Assert.assertEquals("200|OK|{\"ok\":true,\"acknowledged\":true}", response);
+		Assert.assertEquals("200|OK|{\"acknowledged\":true}", response);
 	}
 	
 	@Test
@@ -141,7 +141,7 @@ public class ZMQTransportPluginTest {
 									.endObject();
 		
 		String response = sendAndReceive("PUT", "/books/book/_mapping", mapping.string());
-		Assert.assertEquals("200|OK|{\"ok\":true,\"acknowledged\":true}", response);
+		Assert.assertEquals("200|OK|{\"acknowledged\":true}", response);
 	}
 	
 	@Test
@@ -155,7 +155,7 @@ public class ZMQTransportPluginTest {
 				.endObject();
 		
 		String response = sendAndReceive("PUT", "/books/book/1", book1.string());
-		Assert.assertEquals("201|CREATED|{\"ok\":true,\"_index\":\"books\",\"_type\":\"book\",\"_id\":\"1\",\"_version\":1}", response);
+		Assert.assertEquals("201|CREATED|{\"_index\":\"books\",\"_type\":\"book\",\"_id\":\"1\",\"_version\":1,\"created\":true}", response);
 		
 		XContentBuilder book2 = jsonBuilder()
 				.startObject()
@@ -166,7 +166,7 @@ public class ZMQTransportPluginTest {
 				.endObject();
 		
 		response = sendAndReceive("PUT", "/books/book/2", book2.string());
-		Assert.assertEquals("201|CREATED|{\"ok\":true,\"_index\":\"books\",\"_type\":\"book\",\"_id\":\"2\",\"_version\":1}", response);
+		Assert.assertEquals("201|CREATED|{\"_index\":\"books\",\"_type\":\"book\",\"_id\":\"2\",\"_version\":1,\"created\":true}", response);
 		
 		XContentBuilder book3 = jsonBuilder()
 				.startObject()
@@ -178,7 +178,7 @@ public class ZMQTransportPluginTest {
 		
 		response = sendAndReceive("POST", "/books/book", book3.string());
 		Assert.assertNotNull("Response should not be null", response);
-		Assert.assertTrue(response.startsWith("201|CREATED|{\"ok\":true,\"_index\":\"books\",\"_type\":\"book\",\"_id\""));		
+		Assert.assertTrue(response.startsWith("201|CREATED|{\"_index\":\"books\",\"_type\":\"book\",\"_id\""));
 	}
 
 	@Test

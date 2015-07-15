@@ -9,10 +9,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.elasticsearch.ElasticSearchException;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.network.NetworkService;
@@ -94,7 +93,7 @@ public class ZMQQueueServerImpl extends
 	}
 
 	@Override
-	protected void doStart() throws ElasticSearchException {
+	protected void doStart() throws ElasticsearchException{
 
 		logger.debug("Starting ØMQ dealer socket...");
 		dealer = context.socket(ZMQ.DEALER);
@@ -144,46 +143,26 @@ public class ZMQQueueServerImpl extends
 	}
 
 	@Override
-	protected void doClose() throws ElasticSearchException {
+	protected void doClose() throws ElasticsearchException {
 		logger.info("Closing ØMQ server...");
 
         // After next incoming message, sockets will close themselves
         isRunning.set(false);
 
-        while(ZMQQueueServerImpl.waitForSocketsClose.getCount() > 0){
-        	
-            // Let's send a stop message to the sockets
-            dealer.send(ZMQ_STOP_SOCKET.getBytes(), 0);
-
-            // Wait a few
-            try {
-                waitForSocketsClose.await(50, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                // nothing
-            }
-
-            // Receive a response... or not
-            dealer.recv(ZMQ.NOBLOCK);
-        }
-
-        // Stops the queue
-        queueThread.interrupt();
-        logger.info("ØMQ queue thread interrupted");
+        // Close dealer socket
+        dealer.close();
+        logger.info("ØMQ dealer socket closed");
 
         // Stop the router socket, no accept message anymore
         router.close();
         logger.info("ØMQ router socket closed");
-
-        // Close dealer socket
-        dealer.close();
-        logger.info("ØMQ dealer socket closed");
 
 		context.term();
 		logger.info("ØMQ server closed");
 	}
 
 	@Override
-	protected void doStop() throws ElasticSearchException {
+	protected void doStop() throws ElasticsearchException {
 		logger.debug("Stopping ØMQ server...");
 	}
 
